@@ -43,5 +43,7 @@ EventSchema.methods.serialize = function () {
   };
 };
 
-module.exports = mongoose.model('Event', schema);
+const Event = mongoose.model('Event', EventSchema);
+
+module.exports = { Event };
 
