@@ -1,21 +1,23 @@
 'use strict';
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose')
 const { Event } = require('./models');
 const router = express.Router();
 const jsonParser = bodyParser.json();
+const passport = require('passport')
 
-
+router.use('/', passport.authenticate('jwt', { session: false }));
 
 // Create a New Event
-router.post('/', jsonParser, (req, res) => {
+router.post('/upcoming/', (req, res, next) => {
 
-  const { eventName, date, location, viewingCode, description } = req.body;
+  const { eventName, date, time, location, viewingCode, description } = req.body;
   // TODO get from jwtDecode of bearer token
-  const userId = req.headers.authorization;
+  const { userId } = req.user;
 
-  const newEvent = { eventName, date, time, location, viewingCode, description }
-  if (newEvent.viewingCode === null) {
+  const newEvent = { userId, eventName, date, time, location, viewingCode, description }
+  if (newEvent.viewingCode === '') {
     delete newEvent.viewingCode;
   }
 
@@ -29,6 +31,19 @@ router.post('/', jsonParser, (req, res) => {
       console.log(err);
     });
 
+});
+
+// Get Upcoming Events
+
+router.get('/upcoming/', (req, res, next) => {
+  Event.find()
+    .sort({ updatedAt: 'desc' })
+    .then(results => {
+      res.json(results);
+    })
+    .catch(err => {
+      next(err);
+    })
 });
 
 module.exports = { router };

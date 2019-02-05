@@ -24,7 +24,7 @@ const app = express();
 
 // Logging
 app.use(morgan('common'));
-
+app.use(express.json());
 // CORS
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');

@@ -10,7 +10,11 @@ const EventSchema = mongoose.Schema({
     required: true,
   },
   date: {
-    type: Date,
+    type: String,
+    required: true,
+  },
+  time: {
+    type: String,
     required: true,
   },
   location: {
@@ -33,15 +37,13 @@ const EventSchema = mongoose.Schema({
 
 EventSchema.set('timestamps', true);
 
-EventSchema.methods.serialize = function () {
-  return {
-    eventName: this.eventName || '',
-    date: this.date || '',
-    location: this.location || '',
-    description: this.description || '',
-    viewingCode: this.viewingCode || null
-  };
-};
+EventSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, result) => {
+    delete result.__v;
+    delete result._id;
+  }
+});
 
 const Event = mongoose.model('Event', EventSchema);
 
