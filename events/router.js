@@ -14,7 +14,7 @@ router.post('/', jsonParser, (req, res) => {
   // TODO get from jwtDecode of bearer token
   const userId = req.headers.authorization;
 
-  const newEvent = { eventName, date, location, viewingCode, description }
+  const newEvent = { eventName, date, time, location, viewingCode, description }
   if (newEvent.viewingCode === null) {
     delete newEvent.viewingCode;
   }
