@@ -11,7 +11,7 @@ router.use('/', passport.authenticate('jwt', { session: false }));
 
 // Create a New Event
 router.post('/', (req, res, next) => {
-  console.log('helloooooooooooooooooooooooooooooooooooo', req.body)
+
   const { eventName, date, time, location, viewingCode, description } = req.body;
   // TODO get from jwtDecode of bearer token
   const { userId } = req.user;
@@ -28,7 +28,6 @@ router.post('/', (req, res, next) => {
     })
     .catch(err => {
       next(err);
-      console.log(err);
     });
 
 });
@@ -53,7 +52,6 @@ router.get('/upcoming/:id', (req, res, next) => {
   const { userId } = req.user
 
   Event.findOne({ _id: id, userId })
-    .then(console.log(id, userId))
     .then(result => {
       if (result) {
         res.json(result);
