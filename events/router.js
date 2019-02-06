@@ -33,7 +33,7 @@ router.post('/', (req, res, next) => {
 
 });
 
-// Get Upcoming Events
+// GET all Upcoming Events
 
 router.get('/upcoming/', (req, res, next) => {
   Event.find()
@@ -45,6 +45,27 @@ router.get('/upcoming/', (req, res, next) => {
       next(err);
     })
 });
+
+// GET Upcoming Event by ID
+
+router.get('/upcoming/:id', (req, res, next) => {
+  const { id } = req.params;
+  const { userId } = req.user
+
+  Event.findOne({ _id: id, userId })
+    .then(console.log(id, userId))
+    .then(result => {
+      if (result) {
+        res.json(result);
+      } else {
+        next()
+      }
+    })
+    .catch(err => {
+      next(err);
+    })
+});
+
 
 module.exports = { router };
 
