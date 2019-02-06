@@ -10,8 +10,8 @@ const passport = require('passport')
 router.use('/', passport.authenticate('jwt', { session: false }));
 
 // Create a New Event
-router.post('/upcoming/', (req, res, next) => {
-
+router.post('/', (req, res, next) => {
+  console.log('helloooooooooooooooooooooooooooooooooooo', req.body)
   const { eventName, date, time, location, viewingCode, description } = req.body;
   // TODO get from jwtDecode of bearer token
   const { userId } = req.user;
