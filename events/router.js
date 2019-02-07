@@ -45,6 +45,25 @@ router.get('/upcoming/', (req, res, next) => {
     })
 });
 
+// GET SINGLE Upcoming Event by ID
+
+router.get('/upcoming/:id', (req, res, next) => {
+  const { id } = req.params;
+  const { userId } = req.user
+
+  Event.findOne({ _id: id, date: { $gte: Date.now() }, userId })
+    .then(result => {
+      if (result) {
+        res.json(result);
+      } else {
+        next()
+      }
+    })
+    .catch(err => {
+      next(err);
+    })
+});
+
 // GET all Past Events
 
 router.get('/past/', (req, res, next) => {
@@ -58,13 +77,13 @@ router.get('/past/', (req, res, next) => {
     })
 });
 
-// GET Upcoming Event by ID
+// GET SINGLE Past Event by ID
 
-router.get('/upcoming/:id', (req, res, next) => {
+router.get('/past/:id', (req, res, next) => {
   const { id } = req.params;
   const { userId } = req.user
 
-  Event.findOne({ _id: id, userId })
+  Event.findOne({ _id: id, date: { $lt: Date.now() }, userId })
     .then(result => {
       if (result) {
         res.json(result);
