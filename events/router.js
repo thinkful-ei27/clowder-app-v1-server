@@ -35,7 +35,20 @@ router.post('/', (req, res, next) => {
 // GET all Upcoming Events
 
 router.get('/upcoming/', (req, res, next) => {
-  Event.find()
+  Event.find({ date: { $gte: Date.now() } })
+    .sort({ updatedAt: 'desc' })
+    .then(results => {
+      res.json(results);
+    })
+    .catch(err => {
+      next(err);
+    })
+});
+
+// GET all Past Events
+
+router.get('/past/', (req, res, next) => {
+  Event.find({ date: { $lt: Date.now() } })
     .sort({ updatedAt: 'desc' })
     .then(results => {
       res.json(results);
