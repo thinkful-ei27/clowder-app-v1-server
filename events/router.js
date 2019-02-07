@@ -35,7 +35,7 @@ router.post('/', (req, res, next) => {
 // GET all Upcoming Events
 
 router.get('/upcoming/', (req, res, next) => {
-  Event.find({ date: { $gte: Date.now() } })
+  Event.find({ date: { $gte: new Date() } })
     .sort({ updatedAt: 'desc' })
     .then(results => {
       res.json(results);
@@ -51,7 +51,7 @@ router.get('/upcoming/:id', (req, res, next) => {
   const { id } = req.params;
   const { userId } = req.user
 
-  Event.findOne({ _id: id, date: { $gte: Date.now() }, userId })
+  Event.findOne({ _id: id, date: { $gte: new Date() }, userId })
     .then(result => {
       if (result) {
         res.json(result);
@@ -67,7 +67,7 @@ router.get('/upcoming/:id', (req, res, next) => {
 // GET all Past Events
 
 router.get('/past/', (req, res, next) => {
-  Event.find({ date: { $lt: Date.now() } })
+  Event.find({ date: { $lt: new Date() } })
     .sort({ updatedAt: 'desc' })
     .then(results => {
       res.json(results);
@@ -83,7 +83,7 @@ router.get('/past/:id', (req, res, next) => {
   const { id } = req.params;
   const { userId } = req.user
 
-  Event.findOne({ _id: id, date: { $lt: Date.now() }, userId })
+  Event.findOne({ _id: id, date: { $lt: new Date() }, userId })
     .then(result => {
       if (result) {
         res.json(result);
@@ -94,6 +94,35 @@ router.get('/past/:id', (req, res, next) => {
     .catch(err => {
       next(err);
     })
+});
+
+// Delete Single Upcoming Event
+// router.delete('/upcoming/:id', (req, res, next) => {
+//   const { id } = req.params;
+//   const userId = req.user.id;
+
+//   Event.findOneAndRemove({ _id: id, userId })
+//     .then(() => {
+//       res.sendStatus(204);
+//     })
+//     .catch(err => {
+//       next(err);
+//     });
+// });
+
+// Delete Single Past Event
+
+router.delete('/past/:id', (req, res, next) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  Event.findOneAndDelete({ _id: id, userId })
+    .then(() => {
+      res.sendStatus(204);
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 
