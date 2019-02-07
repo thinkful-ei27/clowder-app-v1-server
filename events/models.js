@@ -41,6 +41,7 @@ EventSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, result) => {
     delete result.__v;
+    delete result._id;
   }
 });
 
