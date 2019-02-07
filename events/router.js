@@ -1,11 +1,8 @@
 'use strict';
 const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose')
-const { Event } = require('./models');
 const router = express.Router();
-const jsonParser = bodyParser.json();
 const passport = require('passport')
+const { Event } = require('./models');
 
 router.use('/', passport.authenticate('jwt', { session: false }));
 
@@ -97,24 +94,24 @@ router.get('/past/:id', (req, res, next) => {
 });
 
 // Delete Single Upcoming Event
-// router.delete('/upcoming/:id', (req, res, next) => {
-//   const { id } = req.params;
-//   const userId = req.user.id;
+router.delete('/upcoming/:id', (req, res, next) => {
+  const { id } = req.params;
+  const { userId } = req.user;
 
-//   Event.findOneAndRemove({ _id: id, userId })
-//     .then(() => {
-//       res.sendStatus(204);
-//     })
-//     .catch(err => {
-//       next(err);
-//     });
-// });
+  Event.findOneAndDelete({ _id: id, userId })
+    .then(() => {
+      res.sendStatus(204);
+    })
+    .catch(err => {
+      next(err);
+    });
+});
 
 // Delete Single Past Event
 
 router.delete('/past/:id', (req, res, next) => {
   const { id } = req.params;
-  const userId = req.user.id;
+  const { userId } = req.user;
 
   Event.findOneAndDelete({ _id: id, userId })
     .then(() => {
