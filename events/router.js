@@ -6,7 +6,7 @@ const { Event } = require('./models');
 
 router.use('/', passport.authenticate('jwt', { session: false }));
 
-// Create a New Event
+/* ========== POST ========== */
 router.post('/', (req, res, next) => {
 
   const { eventName, date, time, location, viewingCode, description } = req.body;
@@ -29,58 +29,44 @@ router.post('/', (req, res, next) => {
 
 });
 
+/* ========== GET ALL ========== */
+//CONTROTLER
+const getAllEventsController = (req, res, next) => {
+  const today = new Date()
+  const regex1 = RegExp('/upcoming*');
+  const result = regex1.test(req.url)
+  const query = result ? { $gte: today } : { $lt: today }
+
+  Event.find({ date: query })
+    .sort({ updatedAt: 'desc' })
+    .then(results => {
+      if (results) {
+        res.json(results);
+      } else {
+        next()
+      }
+    })
+    .catch(err => {
+      next(err);
+    })
+}
 // GET all Upcoming Events
-
-router.get('/upcoming/', (req, res, next) => {
-  Event.find({ date: { $gte: new Date() } })
-    .sort({ updatedAt: 'desc' })
-    .then(results => {
-      res.json(results);
-    })
-    .catch(err => {
-      next(err);
-    })
-});
-
-// GET SINGLE Upcoming Event by ID
-
-router.get('/upcoming/:id', (req, res, next) => {
-  const { id } = req.params;
-  const { userId } = req.user
-
-  Event.findOne({ _id: id, date: { $gte: new Date() }, userId })
-    .then(result => {
-      if (result) {
-        res.json(result);
-      } else {
-        next()
-      }
-    })
-    .catch(err => {
-      next(err);
-    })
-});
-
+router.get('/upcoming/', getAllEventsController);
 // GET all Past Events
+router.get('/past/', getAllEventsController);
 
-router.get('/past/', (req, res, next) => {
-  Event.find({ date: { $lt: new Date() } })
-    .sort({ updatedAt: 'desc' })
-    .then(results => {
-      res.json(results);
-    })
-    .catch(err => {
-      next(err);
-    })
-});
 
-// GET SINGLE Past Event by ID
-
-router.get('/past/:id', (req, res, next) => {
+/* ========== GET ONE ========== */
+//CONTROTLER
+const getSingleEventController = (req, res, next) => {
   const { id } = req.params;
   const { userId } = req.user
+  const today = new Date()
+  const regex1 = RegExp('/upcoming*');
+  const result = regex1.test(req.url)
+  const query = result ? { $gte: today } : { $lt: today }
 
-  Event.findOne({ _id: id, date: { $lt: new Date() }, userId })
+  Event.findOne({ _id: id, date: query, userId })
     .then(result => {
       if (result) {
         res.json(result);
@@ -91,37 +77,76 @@ router.get('/past/:id', (req, res, next) => {
     .catch(err => {
       next(err);
     })
-});
+}
+// GET SINGLE Upcoming Event by ID
+router.get('/upcoming/:id', getSingleEventController);
+// GET SINGLE Past Event by ID
+router.get('/past/:id', getSingleEventController);
 
+
+/* ========== DELETE ========== */
+const DeleteController = (req, res, next) => {
+  const { id } = req.params;
+  const { userId } = req.user;
+
+  Event.findOneAndDelete({ _id: id, userId })
+    .then(() => {
+      res.sendStatus(204);
+    })
+    .catch(err => {
+      next(err);
+    });
+};
 // Delete Single Upcoming Event
-router.delete('/upcoming/:id', (req, res, next) => {
-  const { id } = req.params;
-  const { userId } = req.user;
-
-  Event.findOneAndDelete({ _id: id, userId })
-    .then(() => {
-      res.sendStatus(204);
-    })
-    .catch(err => {
-      next(err);
-    });
-});
-
+router.delete('/upcoming/:id', DeleteController);
 // Delete Single Past Event
+router.delete('/past/:id', DeleteController);
 
-router.delete('/past/:id', (req, res, next) => {
+/* ========== PUT ========== */
+//CONTROTLER
+const editSingleEventController = (req, res, next, ) => {
+  console.log('edit controller ran', req.body)
   const { id } = req.params;
   const { userId } = req.user;
+  const today = new Date();
+  const regex1 = RegExp('/upcoming*');
+  const result = regex1.test(req.url);
+  const query = result ? { $gte: today } : { $lt: today };
 
-  Event.findOneAndDelete({ _id: id, userId })
-    .then(() => {
-      res.sendStatus(204);
+  const toUpdate = {};
+  const updateableFields = ['eventName', 'date', 'time', 'location', 'description', 'viewingCode'];
+  updateableFields.forEach(field => {
+    if (field in req.body) {
+      toUpdate[field] = req.body[field];
+    }
+  });
+
+  if (toUpdate.description === '') {
+    delete toUpdate.description;
+    toUpdate.$unset = { description: 1 };
+  }
+  if (toUpdate.viewingCode === '') {
+    delete toUpdate.viewingCode;
+    toUpdate.$unset = { viewingCode: 1 };
+  }
+
+  Event.findOneAndUpdate({ _id: id, date: query, userId }, toUpdate, { new: true })
+    .then(result => {
+      if (result) {
+        res.json(result);
+      } else {
+        next();
+      }
     })
     .catch(err => {
       next(err);
     });
-});
+}
 
+//UPCOMING
+router.put('/upcoming/:id', editSingleEventController);
+//PAST
+router.put('/past/:id', editSingleEventController);
 
 module.exports = { router };
 
