@@ -55,7 +55,6 @@ router.get('/upcoming/', getAllEventsController);
 // GET all Past Events
 router.get('/past/', getAllEventsController);
 
-
 /* ========== GET ONE ========== */
 //CONTROTLER
 const getSingleEventController = (req, res, next) => {
@@ -82,7 +81,6 @@ const getSingleEventController = (req, res, next) => {
 router.get('/upcoming/:id', getSingleEventController);
 // GET SINGLE Past Event by ID
 router.get('/past/:id', getSingleEventController);
-
 
 /* ========== DELETE ========== */
 const DeleteController = (req, res, next) => {
@@ -142,7 +140,6 @@ const editSingleEventController = (req, res, next, ) => {
       next(err);
     });
 }
-
 //UPCOMING
 router.put('/upcoming/:id', editSingleEventController);
 //PAST
