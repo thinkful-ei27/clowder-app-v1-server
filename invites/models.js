@@ -26,11 +26,6 @@ const EventSchema = mongoose.Schema({
   },
   viewingCode: {
     type: String
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
   }
 });
 
@@ -44,7 +39,7 @@ EventSchema.set('toJSON', {
   }
 });
 
-const Event = mongoose.model('Event', EventSchema);
+const Invite = mongoose.model('Invite', InviteSchema);
 
-module.exports = { Event };
+module.exports = { Invite };
 

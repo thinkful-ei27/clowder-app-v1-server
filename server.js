@@ -15,7 +15,9 @@ const cors = require('cors');
 // console.log(bobby); // De Niro - the variable name is bobby, not robert
 const { router: usersRouter } = require('./users');
 const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
-const { router: eventRouter } = require('./events')
+const { router: eventRouter } = require('./events');
+const { router: inviteRouter } = require('./invites');
+
 
 mongoose.Promise = global.Promise;
 
@@ -28,6 +30,7 @@ const app = express();
 app.use(morgan('common'));
 app.use(express.json());
 app.use(cors({ origin: CLIENT_ORIGIN }))
+
 // CORS
 // app.use(function (req, res, next) {
 //   res.header('Access-Control-Allow-Origin', '*');
@@ -45,15 +48,7 @@ passport.use(jwtStrategy);
 app.use('/api/users/', usersRouter);
 app.use('/api/auth/', authRouter);
 app.use('/api/events', eventRouter);
-
-const jwtAuth = passport.authenticate('jwt', { session: false });
-
-// A protected endpoint which needs a valid JWT to access it
-app.get('/api/protected', jwtAuth, (req, res) => {
-  return res.json({
-    data: 'rosebud'
-  });
-});
+app.use('/api/events', inviteRouter);
 
 app.use('*', (req, res) => {
   return res.status(404).json({ message: 'Not Found' });
