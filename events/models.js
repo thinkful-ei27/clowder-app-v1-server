@@ -31,6 +31,11 @@ const EventSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  inviteId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Invite',
+    required: true
   }
 });
 

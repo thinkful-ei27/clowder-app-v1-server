@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
-const EventSchema = mongoose.Schema({
-  eventName: {
+const InviteSchema = mongoose.Schema({
+  inviteName: {
     type: String,
     required: true,
   },
@@ -29,9 +29,9 @@ const EventSchema = mongoose.Schema({
   }
 });
 
-EventSchema.set('timestamps', true);
+InviteSchema.set('timestamps', true);
 
-EventSchema.set('toJSON', {
+InviteSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, result) => {
     delete result.__v;

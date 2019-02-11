@@ -18,7 +18,6 @@ const { router: authRouter, localStrategy, jwtStrategy } = require('./auth');
 const { router: eventRouter } = require('./events');
 const { router: inviteRouter } = require('./invites');
 
-
 mongoose.Promise = global.Promise;
 
 const { PORT, DATABASE_URL, CLIENT_ORIGIN } = require('./config');
@@ -48,7 +47,7 @@ passport.use(jwtStrategy);
 app.use('/api/users/', usersRouter);
 app.use('/api/auth/', authRouter);
 app.use('/api/events', eventRouter);
-app.use('/api/events', inviteRouter);
+app.use('/api/invites', inviteRouter);
 
 app.use('*', (req, res) => {
   return res.status(404).json({ message: 'Not Found' });
