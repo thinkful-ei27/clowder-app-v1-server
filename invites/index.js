@@ -1,5 +1,5 @@
 'use strtict';
-const { Invite } = require('./models');
+const { Event } = require('../events/models');
 const { router } = require('./router');
 
-module.exports = { Invite, router };
+module.exports = { Event, router };

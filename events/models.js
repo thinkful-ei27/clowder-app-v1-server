@@ -22,7 +22,6 @@ const EventSchema = mongoose.Schema({
   },
   description: {
     type: String,
-
   },
   viewingCode: {
     type: String
