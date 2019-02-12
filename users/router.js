@@ -61,16 +61,6 @@ router.put('/:id', (req, res, next, ) => {
   });
 
   if (toUpdate.password) {
-  }
-  if (toUpdate.username === '') {
-    delete toUpdate.description;
-    toUpdate.$unset = { description: 1 };
-  }
-  if (toUpdate.fullName === '') {
-    delete toUpdate.viewingCode;
-    toUpdate.$unset = { viewingCode: 1 };
-  }
-  if (toUpdate.username) {
     let username = toUpdate.username
     console.log('checking for username:', username)
     return User.find({ username })
@@ -99,21 +89,49 @@ router.put('/:id', (req, res, next, ) => {
             }
           })
           .catch(err => {
-            next(err);
+            // Forward validation errors on to the client, otherwise give a 500
+            // error because something unexpected has happened
+            if (err.reason === 'ValidationError') {
+              return res.status(err.code).json(err);
+            }
+            res.status(500).json({ code: 500, message: 'Internal server error' });
           });
       });
   } else {
-    console.log('bout to find and update with no user... see?', toUpdate)
-    return User.findOneAndUpdate({ _id: id, }, toUpdate, { new: true })
-      .then(result => {
-        if (result) {
-          return res.status(201).json(result.serialize());
-        } else {
-          next();
+    let username = toUpdate.username
+    console.log('checking for username:', username)
+    return User.find({ username })
+      .count()
+      .then(count => {
+        if (count > 0) {
+          // There is an existing user with the same username
+          return Promise.reject({
+            code: 422,
+            reason: 'ValidationError',
+            message: 'Username already taken',
+            location: 'username'
+          });
         }
+        return;
       })
-      .catch(err => {
-        next(err);
+      .then(() => {
+        console.log('bout to findOneandUpdate with', toUpdate)
+        return User.findOneAndUpdate({ _id: id, }, toUpdate, { new: true })
+          .then(result => {
+            if (result) {
+              return res.status(201).json(result.serialize());
+            } else {
+              next();
+            }
+          })
+          .catch(err => {
+            // Forward validation errors on to the client, otherwise give a 500
+            // error because something unexpected has happened
+            if (err.reason === 'ValidationError') {
+              return res.status(err.code).json(err);
+            }
+            res.status(500).json({ code: 500, message: 'Internal server error' });
+          });
       });
   }
 });
