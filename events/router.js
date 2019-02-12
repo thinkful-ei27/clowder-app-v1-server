@@ -32,13 +32,13 @@ router.post('/', (req, res, next) => {
 /* ========== GET ALL ========== */
 //CONTROTLER
 const getAllEventsController = (req, res, next) => {
-  console.log('event:', req.body)
+  const { userId } = req.user
   const today = new Date()
   const regex1 = RegExp('/upcoming*');
   const result = regex1.test(req.url);
   const query = result ? { $gte: today } : { $lt: today };
 
-  Event.find({ date: query })
+  Event.find({ date: query, userId })
     .sort({ updatedAt: 'desc' })
     .then(results => {
       if (results) {
