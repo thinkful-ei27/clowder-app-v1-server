@@ -7,87 +7,6 @@ const jsonParser = bodyParser.json();
 
 // Post to register a new user
 router.post('/', jsonParser, (req, res) => {
-  const requiredFields = ['username', 'password'];
-  const missingField = requiredFields.find(field => !(field in req.body));
-
-  if (missingField) {
-    return res.status(422).json({
-      code: 422,
-      reason: 'ValidationError',
-      message: 'Missing field',
-      location: missingField
-    });
-  }
-
-  const stringFields = ['username', 'password', 'fullName'];
-  const nonStringField = stringFields.find(
-    field => field in req.body && typeof req.body[field] !== 'string'
-  );
-
-  if (nonStringField) {
-    return res.status(422).json({
-      code: 422,
-      reason: 'ValidationError',
-      message: 'Incorrect field type: expected string',
-      location: nonStringField
-    });
-  }
-
-  // If the username and password aren't trimmed we give an error.  Users might
-  // expect that these will work without trimming (i.e. they want the password
-  // "foobar ", including the space at the end).  We need to reject such values
-  // explicitly so the users know what's happening, rather than silently
-  // trimming them and expecting the user to understand.
-  // We'll silently trim the other fields, because they aren't credentials used
-  // to log in, so it's less of a problem.
-  const explicityTrimmedFields = ['username', 'password'];
-  const nonTrimmedField = explicityTrimmedFields.find(
-    field => req.body[field].trim() !== req.body[field]
-  );
-
-  if (nonTrimmedField) {
-    return res.status(422).json({
-      code: 422,
-      reason: 'ValidationError',
-      message: 'Cannot start or end with whitespace',
-      location: nonTrimmedField
-    });
-  }
-
-  const sizedFields = {
-    username: {
-      min: 1
-    },
-    password: {
-      min: 8,
-      // bcrypt truncates after 72 characters, so let's not give the illusion
-      // of security by storing extra (unused) info
-      max: 72
-    }
-  };
-  const tooSmallField = Object.keys(sizedFields).find(
-    field =>
-      'min' in sizedFields[field] &&
-      req.body[field].trim().length < sizedFields[field].min
-  );
-  const tooLargeField = Object.keys(sizedFields).find(
-    field =>
-      'max' in sizedFields[field] &&
-      req.body[field].trim().length > sizedFields[field].max
-  );
-
-  if (tooSmallField || tooLargeField) {
-    return res.status(422).json({
-      code: 422,
-      reason: 'ValidationError',
-      message: tooSmallField
-        ? `Must be at least ${sizedFields[tooSmallField]
-          .min} characters long`
-        : `Must be at most ${sizedFields[tooLargeField]
-          .max} characters long`,
-      location: tooSmallField || tooLargeField
-    });
-  }
 
   let { username, password, fullName = '' } = req.body;
   // Username and password come in pre-trimmed, otherwise we throw an error
@@ -113,7 +32,7 @@ router.post('/', jsonParser, (req, res) => {
       return User.create({
         username,
         password: hash,
-        fullName
+        fullName,
       });
     })
     .then(user => {
@@ -129,14 +48,166 @@ router.post('/', jsonParser, (req, res) => {
     });
 });
 
-// Never expose all your users like below in a prod application
-// we're just doing this so we have a quick way to see
-// if we're creating users. keep in mind, you can also
-// verify this in the Mongo shell.
-router.get('/', (req, res) => {
-  return User.find()
-    .then(users => res.json(users.map(user => user.serialize())))
-    .catch(err => res.status(500).json({ message: 'Internal server error' }));
+router.put('/:id', (req, res, next, ) => {
+  console.log('edit user ran with req.body:', req.body)
+  const { id } = req.params;
+
+  const toUpdate = {};
+  const updateableFields = ['username', 'fullName', 'password'];
+  updateableFields.forEach(field => {
+    if (field in req.body) {
+      toUpdate[field] = req.body[field];
+    }
+  });
+
+  if (toUpdate.password) {
+  }
+  if (toUpdate.username === '') {
+    delete toUpdate.description;
+    toUpdate.$unset = { description: 1 };
+  }
+  if (toUpdate.fullName === '') {
+    delete toUpdate.viewingCode;
+    toUpdate.$unset = { viewingCode: 1 };
+  }
+  if (toUpdate.username) {
+    let username = toUpdate.username
+    console.log('checking for username:', username)
+    return User.find({ username })
+      .count()
+      .then(count => {
+        if (count > 0) {
+          // There is an existing user with the same username
+          return Promise.reject({
+            code: 422,
+            reason: 'ValidationError',
+            message: 'Username already taken',
+            location: 'username'
+          });
+        }
+        return User.hashPassword(toUpdate.password)
+      })
+      .then(hash => {
+        toUpdate.password = hash;
+        console.log('bout to findOneandUpdate with', toUpdate)
+        return User.findOneAndUpdate({ _id: id, }, toUpdate, { new: true })
+          .then(result => {
+            if (result) {
+              return res.status(201).json(result.serialize());
+            } else {
+              next();
+            }
+          })
+          .catch(err => {
+            next(err);
+          });
+      });
+  } else {
+    console.log('bout to find and update with no user... see?', toUpdate)
+    return User.findOneAndUpdate({ _id: id, }, toUpdate, { new: true })
+      .then(result => {
+        if (result) {
+          return res.status(201).json(result.serialize());
+        } else {
+          next();
+        }
+      })
+      .catch(err => {
+        next(err);
+      });
+  }
 });
 
 module.exports = { router };
+
+
+// GET ROUTE FOR CHECKING USERS IN DEVELOPMENT
+// router.get('/', (req, res) => {
+//   return User.find()
+//     .then(users => res.json(users.map(user => user.serialize())))
+//     .catch(err => res.status(500).json({ message: 'Internal server error' }));
+// });
+
+// ================ VALIDATION ================ \\
+
+// const requiredFields = ['username', 'password', 'fullName'];
+// const missingField = requiredFields.find(field => !(field in req.body));
+
+// if (missingField) {
+//   return res.status(422).json({
+//     code: 422,
+//     reason: 'ValidationError',
+//     message: 'Missing field',
+//     location: missingField
+//   });
+// }
+
+// const stringFields = ['username', 'password', 'fullName'];
+// const nonStringField = stringFields.find(
+//   field => field in req.body && typeof req.body[field] !== 'string'
+// );
+
+// if (nonStringField) {
+//   return res.status(422).json({
+//     code: 422,
+//     reason: 'ValidationError',
+//     message: 'Incorrect field type: expected string',
+//     location: nonStringField
+//   });
+// }
+
+// If the username and password aren't trimmed we give an error.  Users might
+// expect that these will work without trimming (i.e. they want the password
+// "foobar ", including the space at the end).  We need to reject such values
+// explicitly so the users know what's happening, rather than silently
+// trimming them and expecting the user to understand.
+// We'll silently trim the other fields, because they aren't credentials used
+// to log in, so it's less of a problem.
+// const explicityTrimmedFields = ['username', 'password'];
+// const nonTrimmedField = explicityTrimmedFields.find(
+//   field => req.body[field].trim() !== req.body[field]
+// );
+
+// if (nonTrimmedField) {
+//   return res.status(422).json({
+//     code: 422,
+//     reason: 'ValidationError',
+//     message: 'Cannot start or end with whitespace',
+//     location: nonTrimmedField
+//   });
+// }
+
+// const sizedFields = {
+//   username: {
+//     min: 1
+//   },
+//   password: {
+//     min: 8,
+//     // bcrypt truncates after 72 characters, so let's not give the illusion
+//     // of security by storing extra (unused) info
+//     max: 72
+//   }
+// };
+// const tooSmallField = Object.keys(sizedFields).find(
+//   field =>
+//     'min' in sizedFields[field] &&
+//     req.body[field].trim().length < sizedFields[field].min
+// );
+// const tooLargeField = Object.keys(sizedFields).find(
+//   field =>
+//     'max' in sizedFields[field] &&
+//     req.body[field].trim().length > sizedFields[field].max
+// );
+
+// if (tooSmallField || tooLargeField) {
+//   return res.status(422).json({
+//     code: 422,
+//     reason: 'ValidationError',
+//     message: tooSmallField
+//       ? `Must be at least ${sizedFields[tooSmallField]
+//         .min} characters long`
+//       : `Must be at most ${sizedFields[tooLargeField]
+//         .max} characters long`,
+//     location: tooSmallField || tooLargeField
+//   });
+// }
