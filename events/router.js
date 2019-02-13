@@ -39,7 +39,7 @@ const getAllEventsController = (req, res, next) => {
   const query = result ? { $gte: today } : { $lt: today };
 
   Event.find({ date: query, userId })
-    .sort({ updatedAt: 'desc' })
+    .sort({ date: 'desc' })
     .then(results => {
       if (results) {
         res.json(results);
@@ -104,7 +104,7 @@ router.delete('/past/:id', DeleteController);
 /* ========== PUT ========== */
 //CONTROTLER
 const editSingleEventController = (req, res, next, ) => {
-  console.log('edit controller ran', req.body)
+
   const { id } = req.params;
   const { userId } = req.user;
   const today = new Date();

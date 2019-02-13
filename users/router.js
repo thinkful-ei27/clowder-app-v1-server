@@ -49,7 +49,7 @@ router.post('/', jsonParser, (req, res) => {
 });
 
 router.put('/:id', (req, res, next, ) => {
-  console.log('edit user ran with req.body:', req.body)
+
   const { id } = req.params;
 
   const toUpdate = {};
@@ -62,7 +62,6 @@ router.put('/:id', (req, res, next, ) => {
 
   if (toUpdate.password) {
     let username = toUpdate.username
-    console.log('checking for username:', username)
     return User.find({ username })
       .count()
       .then(count => {
@@ -79,7 +78,6 @@ router.put('/:id', (req, res, next, ) => {
       })
       .then(hash => {
         toUpdate.password = hash;
-        console.log('bout to findOneandUpdate with', toUpdate)
         return User.findOneAndUpdate({ _id: id, }, toUpdate, { new: true })
           .then(result => {
             if (result) {
@@ -99,7 +97,6 @@ router.put('/:id', (req, res, next, ) => {
       });
   } else {
     let username = toUpdate.username
-    console.log('checking for username:', username)
     return User.find({ username })
       .count()
       .then(count => {
@@ -115,7 +112,6 @@ router.put('/:id', (req, res, next, ) => {
         return;
       })
       .then(() => {
-        console.log('bout to findOneandUpdate with', toUpdate)
         return User.findOneAndUpdate({ _id: id, }, toUpdate, { new: true })
           .then(result => {
             if (result) {
