@@ -108,13 +108,13 @@ const editSingleEventController = (req, res, next, ) => {
 
   const { id } = req.params;
   const { userId } = req.user;
-  const today = new Date();
+  const today = moment().format();
   const regex1 = RegExp('/upcoming*');
   const result = regex1.test(req.url);
   const query = result ? { $gte: today } : { $lt: today };
 
   const toUpdate = {};
-  const updateableFields = ['eventName', 'date', 'time', 'location', 'description', 'viewingCode'];
+  const updateableFields = ['eventName', 'dateAndTime', 'location', 'description', 'viewingCode'];
   updateableFields.forEach(field => {
     if (field in req.body) {
       toUpdate[field] = req.body[field];
@@ -130,7 +130,7 @@ const editSingleEventController = (req, res, next, ) => {
     toUpdate.$unset = { viewingCode: 1 };
   }
 
-  Event.findOneAndUpdate({ _id: id, date: query, userId }, toUpdate, { new: true })
+  Event.findOneAndUpdate({ _id: id, dateAndTime: query, userId }, toUpdate, { new: true })
     .then(result => {
       if (result) {
         res.json(result);
