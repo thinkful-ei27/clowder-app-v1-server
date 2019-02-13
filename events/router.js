@@ -3,17 +3,18 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport')
 const { Event } = require('./models');
+const moment = require('moment');
 
 router.use('/', passport.authenticate('jwt', { session: false }));
 
 /* ========== POST ========== */
 router.post('/', (req, res, next) => {
 
-  const { eventName, date, time, location, viewingCode, description } = req.body;
+  const { eventName, dateAndTime, location, viewingCode, description } = req.body;
   // TODO get from jwtDecode of bearer token
   const { userId } = req.user;
 
-  const newEvent = { userId, eventName, date, time, location, viewingCode, description }
+  const newEvent = { userId, eventName, dateAndTime, location, viewingCode, description }
   if (newEvent.viewingCode === '') {
     delete newEvent.viewingCode;
   }
@@ -33,13 +34,13 @@ router.post('/', (req, res, next) => {
 //CONTROTLER
 const getAllEventsController = (req, res, next) => {
   const { userId } = req.user
-  const today = new Date()
+  const today = moment().format();
   const regex1 = RegExp('/upcoming*');
   const result = regex1.test(req.url);
   const query = result ? { $gte: today } : { $lt: today };
 
-  Event.find({ date: query, userId })
-    .sort({ date: 'desc' })
+  Event.find({ dateAndTime: query, userId })
+    .sort({ dateAndTime: 'desc' })
     .then(results => {
       if (results) {
         res.json(results);
@@ -61,12 +62,12 @@ router.get('/past/', getAllEventsController);
 const getSingleEventController = (req, res, next) => {
   const { id } = req.params;
   const { userId } = req.user
-  const today = new Date()
+  const today = moment().format();
   const regex1 = RegExp('/upcoming*');
   const result = regex1.test(req.url)
   const query = result ? { $gte: today } : { $lt: today }
 
-  Event.findOne({ _id: id, date: query, userId })
+  Event.findOne({ _id: id, dateAndTime: query, userId })
     .then(result => {
       if (result) {
         res.json(result);

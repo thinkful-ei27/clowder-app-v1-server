@@ -3,13 +3,17 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
-const EventSchema = mongoose.Schema({
-  eventName: {
+const InviteSchema = mongoose.Schema({
+  inviteName: {
     type: String,
     required: true,
   },
-  dateAndTime: {
+  date: {
     type: Date,
+    required: true,
+  },
+  time: {
+    type: String,
     required: true,
   },
   location: {
@@ -22,6 +26,15 @@ const EventSchema = mongoose.Schema({
   viewingCode: {
     type: String
   },
+  rsvps: {
+    type: Array,
+    required
+  },
+  eventId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+    required: true
+  }
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -36,10 +49,11 @@ EventSchema.set('toJSON', {
   transform: (doc, result) => {
     delete result.__v;
     delete result._id;
+    delete result.viewingCode
   }
 });
 
-const Event = mongoose.model('Event', EventSchema);
+const Event = mongoose.model('Invite', InviteSchema);
 
-module.exports = { Event };
+module.exports = { Invite };
 
