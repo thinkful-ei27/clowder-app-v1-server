@@ -72,10 +72,10 @@ describe('/api/events', function () {
   describe('GET /api/events/upcoming', function () {
     const today = new Date();
    
-    it.only('should return the correct number of Events in the future', function () {
+    it('should return the correct number of Events in the future', function () {
       return Promise.all([
         Event.find({ dateAndTime: { $gte: today }, userId: user._id }),
-        chai.request(app).get('/api/events/upcoming').set('Authorization', `Bearer ${token}`)
+        chai.request(app).get('/api/events/upcoming/').set('Authorization', `Bearer ${token}`)
       ])
         .then(([data, res]) => {
           expect(res).to.have.status(200);
@@ -87,10 +87,10 @@ describe('/api/events', function () {
 
   })
 
-  describe('GET /api/events/past', function () {
+  describe('GET /api/events/past/', function () {
     const today = new Date();
    
-    it.only('should return the correct number of Events in the past', function () {
+    it('should return the correct number of Events in the past', function () {
       return Promise.all([
         Event.find({ dateAndTime: { $lt: today }, userId: user.id }),
         chai.request(app).get('/api/events/past').set('Authorization', `Bearer ${token}`)
