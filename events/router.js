@@ -40,7 +40,7 @@ const getAllEventsController = (req, res, next) => {
   const query = result ? { $gte: today } : { $lt: today };
 
   Event.find({ dateAndTime: query, userId })
-    .sort({ dateAndTime: 'desc' })
+    .sort({ dateAndTime: 'asc' })
     .then(results => {
       if (results) {
         res.json(results);
