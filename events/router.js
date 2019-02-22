@@ -38,9 +38,10 @@ const getAllEventsController = (req, res, next) => {
   const regex1 = RegExp('/upcoming*');
   const result = regex1.test(req.url);
   const query = result ? { $gte: today } : { $lt: today };
+  const sortOrder = result ? { dateAndTime: 'asc' } :  {dateAndTime: 'desc' };
 
   Event.find({ dateAndTime: query, userId })
-    .sort({ dateAndTime: 'asc' })
+    .sort(sortOrder)
     .then(results => {
       if (results) {
         res.json(results);
